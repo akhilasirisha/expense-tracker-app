@@ -16,7 +16,11 @@ import com.expensetracker.model.Expense;
 import com.expensetracker.service.ExpenseService;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = {
+    "http://localhost:5173",
+    "https://expense-tracker-frontend-9pbz3l72n-akhila24.vercel.app",
+    "https://expense-tracker-frontend-one-gamma.vercel.app"
+})
 public class ExpenseController {
 
     private final ExpenseService expenseService;
@@ -37,7 +41,6 @@ public class ExpenseController {
         return expenseService.addExpense(expense, userId);
     }
 
-
     // =========================
     // GET EXPENSES BY USER
     // =========================
@@ -48,7 +51,6 @@ public class ExpenseController {
 
         return expenseService.getExpensesByUserId(userId);
     }
-
 
     // =========================
     // GET SINGLE EXPENSE
@@ -62,7 +64,6 @@ public class ExpenseController {
         return expenseService.getExpenseById(id, userId);
     }
 
-
     // =========================
     // UPDATE EXPENSE
     // =========================
@@ -75,7 +76,6 @@ public class ExpenseController {
 
         return expenseService.updateExpense(id, expense, userId);
     }
-
 
     // =========================
     // DELETE EXPENSE
