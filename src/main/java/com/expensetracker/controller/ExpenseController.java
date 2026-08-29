@@ -19,7 +19,8 @@ import com.expensetracker.service.ExpenseService;
 @CrossOrigin(origins = {
     "http://localhost:5173",
     "https://expense-tracker-frontend-9pbz3l72n-akhila24.vercel.app",
-    "https://expense-tracker-frontend-one-gamma.vercel.app"
+    "https://expense-tracker-frontend-one-gamma.vercel.app",
+    "https://expenseai-finance.vercel.app"
 })
 public class ExpenseController {
 
