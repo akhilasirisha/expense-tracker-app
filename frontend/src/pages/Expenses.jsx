@@ -30,7 +30,7 @@ function Expenses() {
     try {
 
       const response = await fetch(
-        `http://localhost:8081/expenses/user/${user.id}`
+        `https://expense-tracker-app-production-ea6e.up.railway.app/expenses/user/${user.id}`
       );
 
       if (!response.ok) {
@@ -93,7 +93,7 @@ function Expenses() {
       if (editingId) {
 
         const response = await fetch(
-          `http://localhost:8081/expenses/${editingId}?userId=${user.id}`,
+          `https://expense-tracker-app-production-ea6e.up.railway.app/expenses/${editingId}?userId=${user.id}`,
           {
             method: "PUT",
 
@@ -126,7 +126,7 @@ function Expenses() {
       else {
 
         const response = await fetch(
-          `http://localhost:8081/expenses?userId=${user.id}`,
+          `https://expense-tracker-app-production-ea6e.up.railway.app/expenses?userId=${user.id}`,
           {
             method: "POST",
 
@@ -221,7 +221,7 @@ function Expenses() {
     try {
 
       const response = await fetch(
-        `http://localhost:8081/expenses/${id}?userId=${user.id}`,
+        `https://expense-tracker-app-production-ea6e.up.railway.app/expenses/${id}?userId=${user.id}`,
         {
           method: "DELETE",
         }

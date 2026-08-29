@@ -31,7 +31,7 @@ function Dashboard() {
       return;
     }
 
-    fetch(`http://localhost:8081/expenses/user/${user.id}`)
+    fetch(`https://expense-tracker-app-production-ea6e.up.railway.app/expenses/user/${user.id}`)
       .then((response) => {
         if (!response.ok) {
           throw new Error("Failed to fetch expenses");

@@ -54,7 +54,7 @@ function Register() {
 
     try {
       const response = await fetch(
-        "http://localhost:8081/users",
+        "https://expense-tracker-app-production-ea6e.up.railway.app/users",
         {
           method: "POST",
 

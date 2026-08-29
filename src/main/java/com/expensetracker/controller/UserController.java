@@ -12,7 +12,11 @@ import com.expensetracker.dto.UserResponse;
 import com.expensetracker.service.UserService;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = {
+    "http://localhost:5173",
+    "https://expense-tracker-frontend-9pbz3l72n-akhila24.vercel.app",
+    "https://expense-tracker-frontend-one-gamma.vercel.app"
+})
 public class UserController {
 
     private final UserService userService;
@@ -21,13 +25,13 @@ public class UserController {
         this.userService = userService;
     }
 
-
     // =========================
     // REGISTER
     // =========================
 
     @PostMapping("/users")
-    public ResponseEntity<?> registerUser(@RequestBody com.expensetracker.model.User user) {
+    public ResponseEntity<?> registerUser(
+            @RequestBody com.expensetracker.model.User user) {
 
         try {
 
@@ -45,7 +49,6 @@ public class UserController {
                     .body("Email already exists!");
         }
     }
-
 
     // =========================
     // LOGIN

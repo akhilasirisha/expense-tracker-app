@@ -13,7 +13,7 @@ function Login() {
 
     try {
       const response = await fetch(
-        `http://localhost:8081/login?email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`,
+        `https://expense-tracker-app-production-ea6e.up.railway.app/login?email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`,
         {
           method: "POST",
         }
