@@ -1,6 +1,14 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
+import {
+  createUserWithEmailAndPassword,
+  sendEmailVerification,
+  deleteUser,
+} from "firebase/auth";
+
+import { auth } from "../firebase";
+
 function Register() {
   const navigate = useNavigate();
 
@@ -15,7 +23,13 @@ function Register() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // Handle input changes
+  // Local Spring Boot backend
+  const API_BASE_URL = "http://localhost:8081";
+
+  // =========================
+  // HANDLE INPUT CHANGES
+  // =========================
+
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -23,28 +37,31 @@ function Register() {
     });
   };
 
-  // Handle registration
+  // =========================
+  // HANDLE REGISTRATION
+  // =========================
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Check empty fields
+    // Validate fields
     if (
       !formData.fullName.trim() ||
       !formData.email.trim() ||
-      !formData.password.trim() ||
-      !formData.confirmPassword.trim()
+      !formData.password ||
+      !formData.confirmPassword
     ) {
       alert("Please fill all fields!");
       return;
     }
 
-    // Check password length
+    // Validate password length
     if (formData.password.length < 6) {
       alert("Password must be at least 6 characters!");
       return;
     }
 
-    // Check password match
+    // Validate password match
     if (formData.password !== formData.confirmPassword) {
       alert("Passwords do not match!");
       return;
@@ -52,9 +69,41 @@ function Register() {
 
     setLoading(true);
 
+    let firebaseUser = null;
+
     try {
+      // =========================
+      // 1. CREATE FIREBASE ACCOUNT
+      // =========================
+
+      const userCredential =
+        await createUserWithEmailAndPassword(
+          auth,
+          formData.email.trim(),
+          formData.password
+        );
+
+      firebaseUser = userCredential.user;
+
+      console.log(
+        "Firebase account created:",
+        firebaseUser.uid
+      );
+
+      // =========================
+      // 2. SEND VERIFICATION EMAIL
+      // =========================
+
+      await sendEmailVerification(firebaseUser);
+
+      console.log("Verification email sent.");
+
+      // =========================
+      // 3. SAVE USER IN SPRING BOOT
+      // =========================
+
       const response = await fetch(
-        "https://expense-tracker-app-production-ea6e.up.railway.app/users",
+        `${API_BASE_URL}/users`,
         {
           method: "POST",
 
@@ -63,23 +112,24 @@ function Register() {
           },
 
           body: JSON.stringify({
+            firebaseUid: firebaseUser.uid,
+            email: firebaseUser.email,
             name: formData.fullName.trim(),
-            email: formData.email.trim(),
-            password: formData.password,
           }),
         }
       );
 
       // =========================
-      // REGISTRATION SUCCESS
+      // 4. BACKEND SUCCESS
       // =========================
 
       if (response.ok) {
-        const user = await response.json();
+        const savedUser = await response.json();
 
-        console.log("Registration successful:", user);
-
-        alert("Account created successfully!");
+        console.log(
+          "User saved in MySQL:",
+          savedUser
+        );
 
         // Clear form
         setFormData({
@@ -89,52 +139,94 @@ function Register() {
           confirmPassword: "",
         });
 
-        // Go to Login page
+        alert(
+          "Account created successfully!\n\n" +
+            "A verification email has been sent to your email address.\n\n" +
+            "Please verify your email before logging in."
+        );
+
         navigate("/");
       }
 
       // =========================
-      // DUPLICATE EMAIL
-      // =========================
-
-      else if (response.status === 409) {
-        const errorText = await response.text();
-
-        console.error(
-          "Registration failed:",
-          errorText
-        );
-
-        alert(
-          "Email already exists! Please use another email."
-        );
-      }
-
-      // =========================
-      // OTHER SERVER ERRORS
+      // 5. BACKEND ERROR
       // =========================
 
       else {
         const errorText = await response.text();
 
         console.error(
-          "Registration failed:",
+          "Spring Boot user save failed:",
           errorText
         );
 
-        alert("Registration failed!");
-      }
+        // Delete Firebase account if MySQL save fails
+        if (firebaseUser) {
+          try {
+            await deleteUser(firebaseUser);
 
+            console.log(
+              "Firebase account removed because backend save failed."
+            );
+          } catch (deleteError) {
+            console.error(
+              "Failed to delete Firebase account:",
+              deleteError
+            );
+          }
+        }
+
+        alert(
+          errorText ||
+            "Unable to save your account. Please try again."
+        );
+      }
     } catch (error) {
       console.error(
         "Registration error:",
         error
       );
 
-      alert(
-        "Unable to connect to server! Make sure Spring Boot is running on port 8081."
-      );
+      // =========================
+      // FIREBASE ERRORS
+      // =========================
 
+      switch (error.code) {
+        case "auth/email-already-in-use":
+          alert(
+            "This email is already registered. Please login instead."
+          );
+          break;
+
+        case "auth/invalid-email":
+          alert(
+            "Please enter a valid email address."
+          );
+          break;
+
+        case "auth/weak-password":
+          alert(
+            "Password is too weak. Please use at least 6 characters."
+          );
+          break;
+
+        case "auth/operation-not-allowed":
+          alert(
+            "Email/Password authentication is not enabled in Firebase."
+          );
+          break;
+
+        case "auth/network-request-failed":
+          alert(
+            "Network error. Please check your internet connection."
+          );
+          break;
+
+        default:
+          alert(
+            "Registration failed. Please try again."
+          );
+      }
     } finally {
       setLoading(false);
     }
@@ -237,9 +329,7 @@ function Register() {
                 }
                 className="absolute right-4 top-3 text-xl"
               >
-                {showPassword
-                  ? "🙈"
-                  : "👁️"}
+                {showPassword ? "🙈" : "👁️"}
               </button>
 
             </div>

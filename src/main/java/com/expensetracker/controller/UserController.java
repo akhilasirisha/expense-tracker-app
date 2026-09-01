@@ -5,10 +5,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.expensetracker.dto.UserResponse;
+import com.expensetracker.model.User;
 import com.expensetracker.service.UserService;
 
 @RestController
@@ -26,55 +26,28 @@ public class UserController {
         this.userService = userService;
     }
 
-    // =========================
-    // REGISTER
-    // =========================
-
     @PostMapping("/users")
-    public ResponseEntity<?> registerUser(
-            @RequestBody com.expensetracker.model.User user) {
+    public ResponseEntity<?> saveFirebaseUser(
+            @RequestBody User user) {
 
         try {
 
-            UserResponse newUser =
-                    userService.registerUser(user);
+            UserResponse savedUser =
+                    userService.saveFirebaseUser(
+                            user.getFirebaseUid(),
+                            user.getEmail(),
+                            user.getName()
+                    );
 
             return ResponseEntity
                     .status(HttpStatus.CREATED)
-                    .body(newUser);
+                    .body(savedUser);
 
         } catch (RuntimeException e) {
 
             return ResponseEntity
-                    .status(HttpStatus.CONFLICT)
-                    .body("Email already exists!");
-        }
-    }
-
-    // =========================
-    // LOGIN
-    // =========================
-
-    @PostMapping("/login")
-    public ResponseEntity<?> loginUser(
-            @RequestParam String email,
-            @RequestParam String password) {
-
-        try {
-
-            UserResponse user =
-                    userService.loginUser(
-                            email,
-                            password
-                    );
-
-            return ResponseEntity.ok(user);
-
-        } catch (RuntimeException e) {
-
-            return ResponseEntity
-                    .status(HttpStatus.UNAUTHORIZED)
-                    .body("Invalid email or password!");
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(e.getMessage());
         }
     }
 }

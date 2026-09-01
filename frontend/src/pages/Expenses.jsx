@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 
 function Expenses() {
-
   const [expenses, setExpenses] = useState([]);
 
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("");
   const [amount, setAmount] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState("");
   const [description, setDescription] = useState("");
   const [date, setDate] = useState("");
 
@@ -17,20 +17,21 @@ function Expenses() {
 
   const user = JSON.parse(localStorage.getItem("user"));
 
+  // Local backend for now
+  const API_BASE_URL = "http://localhost:8081";
+
   // =========================
   // LOAD EXPENSES
   // =========================
 
   const loadExpenses = async () => {
-
     if (!user || !user.id) {
       return;
     }
 
     try {
-
       const response = await fetch(
-        `https://expense-tracker-app-production-ea6e.up.railway.app/expenses/user/${user.id}`
+        `${API_BASE_URL}/expenses/user/${user.id}`
       );
 
       if (!response.ok) {
@@ -40,28 +41,21 @@ function Expenses() {
       const data = await response.json();
 
       setExpenses(data);
-
     } catch (error) {
-
       console.error("Error loading expenses:", error);
-
       alert("Unable to load expenses!");
-
     }
   };
-
 
   useEffect(() => {
     loadExpenses();
   }, []);
-
 
   // =========================
   // ADD / UPDATE EXPENSE
   // =========================
 
   const handleSubmit = async (e) => {
-
     e.preventDefault();
 
     // Login check
@@ -71,7 +65,13 @@ function Expenses() {
     }
 
     // Required fields validation
-    if (!title.trim() || !category || !amount || !date) {
+    if (
+      !title.trim() ||
+      !category ||
+      !amount ||
+      !paymentMethod ||
+      !date
+    ) {
       alert("Please fill all required fields!");
       return;
     }
@@ -85,15 +85,13 @@ function Expenses() {
     setLoading(true);
 
     try {
-
       // =========================
       // UPDATE EXPENSE
       // =========================
 
       if (editingId) {
-
         const response = await fetch(
-          `https://expense-tracker-app-production-ea6e.up.railway.app/expenses/${editingId}?userId=${user.id}`,
+          `${API_BASE_URL}/expenses/${editingId}?userId=${user.id}`,
           {
             method: "PUT",
 
@@ -105,6 +103,7 @@ function Expenses() {
               title: title.trim(),
               amount: Number(amount),
               category: category,
+              paymentMethod: paymentMethod,
               description: description.trim(),
               date: date,
             }),
@@ -116,7 +115,6 @@ function Expenses() {
         }
 
         alert("Expense updated successfully!");
-
       }
 
       // =========================
@@ -124,9 +122,8 @@ function Expenses() {
       // =========================
 
       else {
-
         const response = await fetch(
-          `https://expense-tracker-app-production-ea6e.up.railway.app/expenses?userId=${user.id}`,
+          `${API_BASE_URL}/expenses?userId=${user.id}`,
           {
             method: "POST",
 
@@ -138,6 +135,7 @@ function Expenses() {
               title: title.trim(),
               amount: Number(amount),
               category: category,
+              paymentMethod: paymentMethod,
               description: description.trim(),
               date: date,
             }),
@@ -149,7 +147,6 @@ function Expenses() {
         }
 
         alert("Expense added successfully!");
-
       }
 
       // Clear form
@@ -157,9 +154,7 @@ function Expenses() {
 
       // Reload expenses
       await loadExpenses();
-
     } catch (error) {
-
       console.error("Error:", error);
 
       alert(
@@ -167,26 +162,22 @@ function Expenses() {
           ? "Unable to update expense!"
           : "Unable to add expense!"
       );
-
     } finally {
-
       setLoading(false);
-
     }
   };
-
 
   // =========================
   // EDIT EXPENSE
   // =========================
 
   const handleEdit = (expense) => {
-
     setEditingId(expense.id);
 
     setTitle(expense.title || "");
     setCategory(expense.category || "");
     setAmount(expense.amount || "");
+    setPaymentMethod(expense.paymentMethod || "");
     setDescription(expense.description || "");
     setDate(expense.date || "");
 
@@ -195,16 +186,13 @@ function Expenses() {
       top: 0,
       behavior: "smooth",
     });
-
   };
-
 
   // =========================
   // DELETE EXPENSE
   // =========================
 
   const handleDelete = async (id) => {
-
     const confirmDelete = window.confirm(
       "Are you sure you want to delete this expense?"
     );
@@ -219,9 +207,8 @@ function Expenses() {
     }
 
     try {
-
       const response = await fetch(
-        `https://expense-tracker-app-production-ea6e.up.railway.app/expenses/${id}?userId=${user.id}`,
+        `${API_BASE_URL}/expenses/${id}?userId=${user.id}`,
         {
           method: "DELETE",
         }
@@ -234,34 +221,26 @@ function Expenses() {
       alert("Expense deleted successfully!");
 
       await loadExpenses();
-
     } catch (error) {
-
       console.error("Error deleting expense:", error);
-
       alert("Unable to delete expense!");
-
     }
-
   };
-
 
   // =========================
   // CLEAR FORM
   // =========================
 
   const clearForm = () => {
-
     setTitle("");
     setCategory("");
     setAmount("");
+    setPaymentMethod("");
     setDescription("");
     setDate("");
 
     setEditingId(null);
-
   };
-
 
   // =========================
   // TOTAL EXPENSES
@@ -273,13 +252,10 @@ function Expenses() {
     0
   );
 
-
   return (
-
     <div className="min-h-screen bg-gray-100 p-6">
 
       <div className="max-w-6xl mx-auto">
-
 
         {/* =========================
             HEADING
@@ -297,7 +273,6 @@ function Expenses() {
 
         </div>
 
-
         {/* =========================
             ADD / EDIT FORM
         ========================== */}
@@ -305,22 +280,17 @@ function Expenses() {
         <div className="bg-white rounded-2xl shadow p-6 mb-6">
 
           <h2 className="text-2xl font-semibold text-gray-800 mb-6">
-
             {editingId
               ? "Edit Expense ✏️"
               : "Add Expense"}
-
           </h2>
-
 
           <form
             onSubmit={handleSubmit}
             className="grid grid-cols-1 md:grid-cols-2 gap-5"
           >
 
-
             {/* TITLE */}
-
             <div>
 
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -340,9 +310,7 @@ function Expenses() {
 
             </div>
 
-
             {/* CATEGORY */}
-
             <div>
 
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -398,9 +366,7 @@ function Expenses() {
 
             </div>
 
-
             {/* AMOUNT */}
-
             <div>
 
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -422,9 +388,59 @@ function Expenses() {
 
             </div>
 
+            {/* PAYMENT METHOD */}
+            <div>
+
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Payment Method
+              </label>
+
+              <select
+                value={paymentMethod}
+                onChange={(e) =>
+                  setPaymentMethod(e.target.value)
+                }
+                className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
+              >
+
+                <option value="">
+                  Select Payment Method
+                </option>
+
+                <option value="Cash">
+                  💵 Cash
+                </option>
+
+                <option value="UPI">
+                  📱 UPI
+                </option>
+
+                <option value="Debit Card">
+                  💳 Debit Card
+                </option>
+
+                <option value="Credit Card">
+                  💳 Credit Card
+                </option>
+
+                <option value="Net Banking">
+                  🏦 Net Banking
+                </option>
+
+                <option value="Bank Transfer">
+                  🏦 Bank Transfer
+                </option>
+
+                <option value="Other">
+                  🔹 Other
+                </option>
+
+              </select>
+
+            </div>
 
             {/* DATE */}
-
             <div>
 
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -443,9 +459,7 @@ function Expenses() {
 
             </div>
 
-
             {/* DESCRIPTION */}
-
             <div className="md:col-span-2">
 
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -464,9 +478,7 @@ function Expenses() {
 
             </div>
 
-
             {/* BUTTONS */}
-
             <div className="md:col-span-2 flex gap-3">
 
               <button
@@ -483,9 +495,7 @@ function Expenses() {
 
               </button>
 
-
               {/* CANCEL */}
-
               {editingId && (
 
                 <button
@@ -503,7 +513,6 @@ function Expenses() {
           </form>
 
         </div>
-
 
         {/* =========================
             TOTAL
@@ -525,7 +534,6 @@ function Expenses() {
 
         </div>
 
-
         {/* =========================
             EXPENSE TABLE
         ========================== */}
@@ -543,7 +551,6 @@ function Expenses() {
             </span>
 
           </div>
-
 
           {expenses.length === 0 ? (
 
@@ -578,6 +585,10 @@ function Expenses() {
                     </th>
 
                     <th className="py-3">
+                      Payment Method
+                    </th>
+
+                    <th className="py-3">
                       Amount
                     </th>
 
@@ -597,7 +608,6 @@ function Expenses() {
 
                 </thead>
 
-
                 <tbody>
 
                   {expenses.map((expense) => (
@@ -611,7 +621,6 @@ function Expenses() {
                         {expense.title}
                       </td>
 
-
                       <td className="py-4">
 
                         <span className="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-sm">
@@ -620,26 +629,32 @@ function Expenses() {
 
                       </td>
 
+                      <td className="py-4">
 
-                      <td className="py-4 font-semibold">
-                        ₹{Number(expense.amount).toFixed(2)}
+                        <span className="bg-purple-100 text-purple-600 px-3 py-1 rounded-full text-sm">
+                          {expense.paymentMethod || "-"}
+                        </span>
+
                       </td>
 
+                      <td className="py-4 font-semibold">
+                        ₹
+                        {Number(
+                          expense.amount
+                        ).toFixed(2)}
+                      </td>
 
                       <td className="py-4">
                         {expense.date}
                       </td>
 
-
                       <td className="py-4">
                         {expense.description || "-"}
                       </td>
 
-
                       <td className="py-4">
 
                         <div className="flex gap-3">
-
 
                           {/* EDIT */}
 
@@ -653,7 +668,6 @@ function Expenses() {
                             ✏️ Edit
                           </button>
 
-
                           {/* DELETE */}
 
                           <button
@@ -665,7 +679,6 @@ function Expenses() {
                           >
                             🗑️ Delete
                           </button>
-
 
                         </div>
 

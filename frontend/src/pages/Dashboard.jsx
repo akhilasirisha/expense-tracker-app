@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+
 import {
   PieChart,
   Pie,
@@ -15,6 +16,9 @@ function Dashboard() {
 
   const user = JSON.parse(localStorage.getItem("user"));
 
+  // Backend API
+  const API_BASE_URL = "http://localhost:8081";
+
   const COLORS = [
     "#4F46E5",
     "#06B6D4",
@@ -24,30 +28,40 @@ function Dashboard() {
     "#8B5CF6",
   ];
 
-  useEffect(() => {
-    if (!user || !user.id) {
-      setLoading(false);
-      setError("Please login first.");
-      return;
-    }
+  // ==============================
+  // LOAD EXPENSES
+  // ==============================
 
-    fetch(`https://expense-tracker-app-production-ea6e.up.railway.app/expenses/user/${user.id}`)
-      .then((response) => {
+  useEffect(() => {
+    const loadExpenses = async () => {
+      if (!user || !user.id) {
+        setLoading(false);
+        setError("Please login first.");
+        return;
+      }
+
+      try {
+        const response = await fetch(
+          `${API_BASE_URL}/expenses/user/${user.id}`
+        );
+
         if (!response.ok) {
           throw new Error("Failed to fetch expenses");
         }
 
-        return response.json();
-      })
-      .then((data) => {
+        const data = await response.json();
+
         setExpenses(data);
-        setLoading(false);
-      })
-      .catch((error) => {
+        setError("");
+      } catch (error) {
         console.error("Error fetching expenses:", error);
         setError("Unable to load expenses.");
+      } finally {
         setLoading(false);
-      });
+      }
+    };
+
+    loadExpenses();
   }, [user?.id]);
 
   // ==============================
@@ -357,7 +371,7 @@ function Dashboard() {
 
               <div className="space-y-4">
 
-                {chartData
+                {[...chartData]
                   .sort((a, b) => b.value - a.value)
                   .map((item, index) => {
 
@@ -395,8 +409,7 @@ function Dashboard() {
                               width: `${percentage}%`,
                               backgroundColor:
                                 COLORS[
-                                  index %
-                                    COLORS.length
+                                  index % COLORS.length
                                 ],
                             }}
                           />
@@ -410,7 +423,6 @@ function Dashboard() {
                       </div>
 
                     );
-
                   })}
 
               </div>
@@ -464,6 +476,10 @@ function Dashboard() {
                     </th>
 
                     <th className="py-4 text-gray-600">
+                      Payment Method
+                    </th>
+
+                    <th className="py-4 text-gray-600">
                       Amount
                     </th>
 
@@ -496,6 +512,14 @@ function Dashboard() {
 
                         <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm">
                           {expense.category}
+                        </span>
+
+                      </td>
+
+                      <td className="py-4">
+
+                        <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm">
+                          {expense.paymentMethod || "-"}
                         </span>
 
                       </td>

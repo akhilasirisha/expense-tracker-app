@@ -22,6 +22,8 @@ public class Expense {
 
     private String category;
 
+    private String paymentMethod;
+
     private String description;
 
     private String date;
@@ -30,18 +32,28 @@ public class Expense {
     @JoinColumn(name = "user_id")
     private User user;
 
+    // Default constructor
     public Expense() {
     }
 
-    public Expense(String title, Double amount, String category,
-                   String description, String date) {
+    // Constructor
+    public Expense(
+            String title,
+            Double amount,
+            String category,
+            String paymentMethod,
+            String description,
+            String date) {
+
         this.title = title;
         this.amount = amount;
         this.category = category;
+        this.paymentMethod = paymentMethod;
         this.description = description;
         this.date = date;
     }
 
+    // ID
     public Long getId() {
         return id;
     }
@@ -50,6 +62,7 @@ public class Expense {
         this.id = id;
     }
 
+    // Title
     public String getTitle() {
         return title;
     }
@@ -58,6 +71,7 @@ public class Expense {
         this.title = title;
     }
 
+    // Amount
     public Double getAmount() {
         return amount;
     }
@@ -66,6 +80,7 @@ public class Expense {
         this.amount = amount;
     }
 
+    // Category
     public String getCategory() {
         return category;
     }
@@ -74,6 +89,16 @@ public class Expense {
         this.category = category;
     }
 
+    // Payment Method
+    public String getPaymentMethod() {
+        return paymentMethod;
+    }
+
+    public void setPaymentMethod(String paymentMethod) {
+        this.paymentMethod = paymentMethod;
+    }
+
+    // Description
     public String getDescription() {
         return description;
     }
@@ -82,6 +107,7 @@ public class Expense {
         this.description = description;
     }
 
+    // Date
     public String getDate() {
         return date;
     }
@@ -90,6 +116,7 @@ public class Expense {
         this.date = date;
     }
 
+    // User
     public User getUser() {
         return user;
     }

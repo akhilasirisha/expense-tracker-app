@@ -1,6 +1,5 @@
 package com.expensetracker.service;
 
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.expensetracker.dto.UserResponse;
@@ -12,32 +11,52 @@ public class UserService {
 
     private final UserRepository userRepository;
 
-    private final BCryptPasswordEncoder passwordEncoder =
-            new BCryptPasswordEncoder();
-
     public UserService(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
 
     // =========================
-    // REGISTER USER
+    // SAVE / SYNC FIREBASE USER
     // =========================
 
-    public UserResponse registerUser(User user) {
+    public UserResponse saveFirebaseUser(
+            String firebaseUid,
+            String email,
+            String name) {
 
-        User existingUser = userRepository.findByEmail(user.getEmail());
+        // First try to find the user using Firebase UID
+        User user =
+                userRepository.findByFirebaseUid(firebaseUid);
 
-        if (existingUser != null) {
-            throw new RuntimeException("Email already exists");
+        // If user does not exist with Firebase UID,
+        // check whether the email already exists.
+        if (user == null) {
+            user = userRepository.findByEmail(email);
         }
 
-        // Convert normal password into BCrypt password
-        String encodedPassword =
-                passwordEncoder.encode(user.getPassword());
+        // Create a new MySQL user if necessary
+        if (user == null) {
 
-        user.setPassword(encodedPassword);
+            user = new User();
 
-        User savedUser = userRepository.save(user);
+            user.setFirebaseUid(firebaseUid);
+            user.setEmail(email);
+            user.setName(name);
+
+            // Firebase handles password authentication.
+            // We do not store the Firebase password in MySQL.
+            user.setPassword(null);
+
+        } else {
+
+            // Update existing user's Firebase information
+            user.setFirebaseUid(firebaseUid);
+            user.setEmail(email);
+            user.setName(name);
+        }
+
+        User savedUser =
+                userRepository.save(user);
 
         return new UserResponse(
                 savedUser.getId(),
@@ -45,7 +64,6 @@ public class UserService {
                 savedUser.getName()
         );
     }
-
 
     // =========================
     // GET USER BY EMAIL
@@ -55,31 +73,13 @@ public class UserService {
         return userRepository.findByEmail(email);
     }
 
-
     // =========================
-    // LOGIN USER
+    // GET USER BY FIREBASE UID
     // =========================
 
-    public UserResponse loginUser(String email, String password) {
+    public User getUserByFirebaseUid(
+            String firebaseUid) {
 
-        User user = userRepository.findByEmail(email);
-
-        if (user == null) {
-            throw new RuntimeException("Invalid email or password");
-        }
-
-        // Compare entered password with BCrypt password
-        if (!passwordEncoder.matches(
-                password,
-                user.getPassword())) {
-
-            throw new RuntimeException("Invalid email or password");
-        }
-
-        return new UserResponse(
-                user.getId(),
-                user.getEmail(),
-                user.getName()
-        );
+        return userRepository.findByFirebaseUid(firebaseUid);
     }
 }

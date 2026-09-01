@@ -2,6 +2,7 @@ package com.expensetracker.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -18,25 +19,30 @@ public class User {
 
     private String name;
 
+    @Column(unique = true, nullable = false)
     private String email;
 
-    // Password can be received from frontend,
-    // but it will NOT be sent back in JSON response.
+    @Column(unique = true, nullable = false)
+    private String firebaseUid;
+
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
 
-    // Default constructor
     public User() {
     }
 
-    // Constructor
-    public User(String name, String email, String password) {
+    public User(
+            String name,
+            String email,
+            String firebaseUid,
+            String password) {
+
         this.name = name;
         this.email = email;
+        this.firebaseUid = firebaseUid;
         this.password = password;
     }
 
-    // ID
     public Long getId() {
         return id;
     }
@@ -45,7 +51,6 @@ public class User {
         this.id = id;
     }
 
-    // Name
     public String getName() {
         return name;
     }
@@ -54,7 +59,6 @@ public class User {
         this.name = name;
     }
 
-    // Email
     public String getEmail() {
         return email;
     }
@@ -63,7 +67,14 @@ public class User {
         this.email = email;
     }
 
-    // Password
+    public String getFirebaseUid() {
+        return firebaseUid;
+    }
+
+    public void setFirebaseUid(String firebaseUid) {
+        this.firebaseUid = firebaseUid;
+    }
+
     public String getPassword() {
         return password;
     }
