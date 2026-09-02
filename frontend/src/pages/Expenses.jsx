@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 function Expenses() {
   const [expenses, setExpenses] = useState([]);
 
@@ -11,14 +13,9 @@ function Expenses() {
   const [date, setDate] = useState("");
 
   const [loading, setLoading] = useState(false);
-
-  // Edit mode
   const [editingId, setEditingId] = useState(null);
 
   const user = JSON.parse(localStorage.getItem("user"));
-
-  // Local backend for now
-  const API_BASE_URL = "http://localhost:8081";
 
   // =========================
   // LOAD EXPENSES
@@ -39,8 +36,8 @@ function Expenses() {
       }
 
       const data = await response.json();
-
       setExpenses(data);
+
     } catch (error) {
       console.error("Error loading expenses:", error);
       alert("Unable to load expenses!");
@@ -58,13 +55,11 @@ function Expenses() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Login check
     if (!user || !user.id) {
       alert("Please login first!");
       return;
     }
 
-    // Required fields validation
     if (
       !title.trim() ||
       !category ||
@@ -76,7 +71,6 @@ function Expenses() {
       return;
     }
 
-    // Amount validation
     if (Number(amount) <= 0) {
       alert("Amount must be greater than 0!");
       return;
@@ -149,11 +143,10 @@ function Expenses() {
         alert("Expense added successfully!");
       }
 
-      // Clear form
       clearForm();
 
-      // Reload expenses
       await loadExpenses();
+
     } catch (error) {
       console.error("Error:", error);
 
@@ -162,6 +155,7 @@ function Expenses() {
           ? "Unable to update expense!"
           : "Unable to add expense!"
       );
+
     } finally {
       setLoading(false);
     }
@@ -181,7 +175,6 @@ function Expenses() {
     setDescription(expense.description || "");
     setDate(expense.date || "");
 
-    // Scroll to form
     window.scrollTo({
       top: 0,
       behavior: "smooth",
@@ -221,6 +214,7 @@ function Expenses() {
       alert("Expense deleted successfully!");
 
       await loadExpenses();
+
     } catch (error) {
       console.error("Error deleting expense:", error);
       alert("Unable to delete expense!");
@@ -257,9 +251,7 @@ function Expenses() {
 
       <div className="max-w-6xl mx-auto">
 
-        {/* =========================
-            HEADING
-        ========================== */}
+        {/* HEADING */}
 
         <div className="mb-6">
 
@@ -273,16 +265,16 @@ function Expenses() {
 
         </div>
 
-        {/* =========================
-            ADD / EDIT FORM
-        ========================== */}
+        {/* ADD / EDIT FORM */}
 
         <div className="bg-white rounded-2xl shadow p-6 mb-6">
 
           <h2 className="text-2xl font-semibold text-gray-800 mb-6">
+
             {editingId
               ? "Edit Expense ✏️"
               : "Add Expense"}
+
           </h2>
 
           <form
@@ -291,6 +283,7 @@ function Expenses() {
           >
 
             {/* TITLE */}
+
             <div>
 
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -311,6 +304,7 @@ function Expenses() {
             </div>
 
             {/* CATEGORY */}
+
             <div>
 
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -367,6 +361,7 @@ function Expenses() {
             </div>
 
             {/* AMOUNT */}
+
             <div>
 
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -389,6 +384,7 @@ function Expenses() {
             </div>
 
             {/* PAYMENT METHOD */}
+
             <div>
 
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -409,31 +405,31 @@ function Expenses() {
                 </option>
 
                 <option value="Cash">
-                  💵 Cash
+                  Cash
                 </option>
 
                 <option value="UPI">
-                  📱 UPI
+                  UPI
                 </option>
 
                 <option value="Debit Card">
-                  💳 Debit Card
+                  Debit Card
                 </option>
 
                 <option value="Credit Card">
-                  💳 Credit Card
+                  Credit Card
                 </option>
 
                 <option value="Net Banking">
-                  🏦 Net Banking
+                  Net Banking
                 </option>
 
                 <option value="Bank Transfer">
-                  🏦 Bank Transfer
+                  Bank Transfer
                 </option>
 
                 <option value="Other">
-                  🔹 Other
+                  Other
                 </option>
 
               </select>
@@ -441,6 +437,7 @@ function Expenses() {
             </div>
 
             {/* DATE */}
+
             <div>
 
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -460,6 +457,7 @@ function Expenses() {
             </div>
 
             {/* DESCRIPTION */}
+
             <div className="md:col-span-2">
 
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -479,6 +477,7 @@ function Expenses() {
             </div>
 
             {/* BUTTONS */}
+
             <div className="md:col-span-2 flex gap-3">
 
               <button
@@ -495,9 +494,7 @@ function Expenses() {
 
               </button>
 
-              {/* CANCEL */}
               {editingId && (
-
                 <button
                   type="button"
                   onClick={clearForm}
@@ -505,7 +502,6 @@ function Expenses() {
                 >
                   Cancel
                 </button>
-
               )}
 
             </div>
@@ -514,9 +510,7 @@ function Expenses() {
 
         </div>
 
-        {/* =========================
-            TOTAL
-        ========================== */}
+        {/* TOTAL */}
 
         <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-2xl shadow p-6 mb-6">
 
@@ -534,9 +528,7 @@ function Expenses() {
 
         </div>
 
-        {/* =========================
-            EXPENSE TABLE
-        ========================== */}
+        {/* EXPENSE TABLE */}
 
         <div className="bg-white rounded-2xl shadow p-6">
 
@@ -585,11 +577,11 @@ function Expenses() {
                     </th>
 
                     <th className="py-3">
-                      Payment Method
+                      Amount
                     </th>
 
                     <th className="py-3">
-                      Amount
+                      Payment Method
                     </th>
 
                     <th className="py-3">
@@ -629,19 +621,16 @@ function Expenses() {
 
                       </td>
 
+                      <td className="py-4 font-semibold">
+                        ₹{Number(expense.amount).toFixed(2)}
+                      </td>
+
                       <td className="py-4">
 
-                        <span className="bg-purple-100 text-purple-600 px-3 py-1 rounded-full text-sm">
+                        <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm">
                           {expense.paymentMethod || "-"}
                         </span>
 
-                      </td>
-
-                      <td className="py-4 font-semibold">
-                        ₹
-                        {Number(
-                          expense.amount
-                        ).toFixed(2)}
                       </td>
 
                       <td className="py-4">
@@ -656,8 +645,6 @@ function Expenses() {
 
                         <div className="flex gap-3">
 
-                          {/* EDIT */}
-
                           <button
                             type="button"
                             onClick={() =>
@@ -667,8 +654,6 @@ function Expenses() {
                           >
                             ✏️ Edit
                           </button>
-
-                          {/* DELETE */}
 
                           <button
                             type="button"

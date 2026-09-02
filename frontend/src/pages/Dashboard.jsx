@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-
 import {
   PieChart,
   Pie,
@@ -9,15 +8,14 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 function Dashboard() {
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   const user = JSON.parse(localStorage.getItem("user"));
-
-  // Backend API
-  const API_BASE_URL = "http://localhost:8081";
 
   const COLORS = [
     "#4F46E5",
@@ -28,65 +26,43 @@ function Dashboard() {
     "#8B5CF6",
   ];
 
-  // ==============================
-  // LOAD EXPENSES
-  // ==============================
-
   useEffect(() => {
-    const loadExpenses = async () => {
-      if (!user || !user.id) {
-        setLoading(false);
-        setError("Please login first.");
-        return;
-      }
+    if (!user || !user.id) {
+      setLoading(false);
+      setError("Please login first.");
+      return;
+    }
 
-      try {
-        const response = await fetch(
-          `${API_BASE_URL}/expenses/user/${user.id}`
-        );
-
+    fetch(`${API_BASE_URL}/expenses/user/${user.id}`)
+      .then((response) => {
         if (!response.ok) {
           throw new Error("Failed to fetch expenses");
         }
 
-        const data = await response.json();
-
+        return response.json();
+      })
+      .then((data) => {
         setExpenses(data);
-        setError("");
-      } catch (error) {
+        setLoading(false);
+      })
+      .catch((error) => {
         console.error("Error fetching expenses:", error);
         setError("Unable to load expenses.");
-      } finally {
         setLoading(false);
-      }
-    };
-
-    loadExpenses();
+      });
   }, [user?.id]);
 
-  // ==============================
   // TOTAL EXPENSE
-  // ==============================
-
   const totalExpenses = expenses.reduce(
-    (total, expense) =>
-      total + (Number(expense.amount) || 0),
+    (total, expense) => total + (Number(expense.amount) || 0),
     0
   );
 
-  // ==============================
   // AVERAGE EXPENSE
-  // ==============================
-
   const averageExpense =
-    expenses.length > 0
-      ? totalExpenses / expenses.length
-      : 0;
+    expenses.length > 0 ? totalExpenses / expenses.length : 0;
 
-  // ==============================
   // CATEGORY-WISE TOTAL
-  // ==============================
-
   const categoryTotals = {};
 
   expenses.forEach((expense) => {
@@ -97,34 +73,24 @@ function Dashboard() {
       (categoryTotals[category] || 0) + amount;
   });
 
-  const chartData = Object.keys(categoryTotals).map(
-    (category) => ({
-      name: category,
-      value: categoryTotals[category],
-    })
-  );
+  const chartData = Object.keys(categoryTotals).map((category) => ({
+    name: category,
+    value: categoryTotals[category],
+  }));
 
-  // ==============================
   // TOP CATEGORY
-  // ==============================
-
   let topCategory = "N/A";
 
   if (chartData.length > 0) {
     const highestCategory = chartData.reduce(
       (previous, current) =>
-        current.value > previous.value
-          ? current
-          : previous
+        current.value > previous.value ? current : previous
     );
 
     topCategory = highestCategory.name;
   }
 
-  // ==============================
   // LOADING
-  // ==============================
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
@@ -135,10 +101,7 @@ function Dashboard() {
     );
   }
 
-  // ==============================
   // LOGIN CHECK
-  // ==============================
-
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
@@ -149,10 +112,7 @@ function Dashboard() {
     );
   }
 
-  // ==============================
   // ERROR
-  // ==============================
-
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
@@ -163,21 +123,12 @@ function Dashboard() {
     );
   }
 
-  // ==============================
-  // DASHBOARD
-  // ==============================
-
   return (
     <div className="min-h-screen bg-gray-100 p-6">
-
       <div className="max-w-7xl mx-auto">
 
-        {/* =========================
-            WELCOME
-        ========================== */}
-
+        {/* WELCOME */}
         <div className="mb-8">
-
           <h1 className="text-4xl font-bold text-gray-800">
             Welcome, {user.name} 👋
           </h1>
@@ -185,22 +136,14 @@ function Dashboard() {
           <p className="text-gray-500 mt-2 text-lg">
             Take control of your finances
           </p>
-
         </div>
 
-        {/* =========================
-            4 SUMMARY CARDS
-        ========================== */}
-
+        {/* SUMMARY CARDS */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
 
-          {/* TOTAL EXPENSE */}
-
+          {/* TOTAL */}
           <div className="bg-white rounded-2xl shadow p-6">
-
-            <p className="text-gray-500">
-              Total Expenses
-            </p>
+            <p className="text-gray-500">Total Expenses</p>
 
             <h2 className="text-3xl font-bold text-blue-600 mt-3">
               ₹{totalExpenses.toFixed(2)}
@@ -209,16 +152,11 @@ function Dashboard() {
             <p className="text-gray-400 text-sm mt-2">
               All your expenses
             </p>
-
           </div>
 
-          {/* NUMBER OF EXPENSES */}
-
+          {/* NUMBER */}
           <div className="bg-white rounded-2xl shadow p-6">
-
-            <p className="text-gray-500">
-              Number of Expenses
-            </p>
+            <p className="text-gray-500">Number of Expenses</p>
 
             <h2 className="text-3xl font-bold text-gray-800 mt-3">
               {expenses.length}
@@ -227,16 +165,11 @@ function Dashboard() {
             <p className="text-gray-400 text-sm mt-2">
               Total transactions
             </p>
-
           </div>
 
           {/* TOP CATEGORY */}
-
           <div className="bg-white rounded-2xl shadow p-6">
-
-            <p className="text-gray-500">
-              Top Category
-            </p>
+            <p className="text-gray-500">Top Category</p>
 
             <h2 className="text-3xl font-bold text-purple-600 mt-3">
               {topCategory}
@@ -245,16 +178,11 @@ function Dashboard() {
             <p className="text-gray-400 text-sm mt-2">
               Highest spending
             </p>
-
           </div>
 
           {/* AVERAGE */}
-
           <div className="bg-white rounded-2xl shadow p-6">
-
-            <p className="text-gray-500">
-              Average Expense
-            </p>
+            <p className="text-gray-500">Average Expense</p>
 
             <h2 className="text-3xl font-bold text-green-600 mt-3">
               ₹{averageExpense.toFixed(2)}
@@ -263,31 +191,21 @@ function Dashboard() {
             <p className="text-gray-400 text-sm mt-2">
               Per transaction
             </p>
-
           </div>
-
         </div>
 
-        {/* =========================
-            CHART + CATEGORY DETAILS
-        ========================== */}
-
+        {/* CHART + CATEGORY */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
 
           {/* PIE CHART */}
-
           <div className="bg-white rounded-2xl shadow p-6">
-
             <h2 className="text-2xl font-semibold text-gray-800 mb-4">
               Spending by Category
             </h2>
 
             {chartData.length === 0 ? (
-
               <div className="flex items-center justify-center h-80">
-
                 <div className="text-center">
-
                   <p className="text-lg text-gray-500">
                     No expenses added yet.
                   </p>
@@ -295,20 +213,11 @@ function Dashboard() {
                   <p className="text-sm text-gray-400 mt-2">
                     Add your first expense to see the chart.
                   </p>
-
                 </div>
-
               </div>
-
             ) : (
-
-              <ResponsiveContainer
-                width="100%"
-                height={350}
-              >
-
+              <ResponsiveContainer width="100%" height={350}>
                 <PieChart>
-
                   <Pie
                     data={chartData}
                     dataKey="value"
@@ -319,22 +228,12 @@ function Dashboard() {
                     innerRadius={55}
                     label
                   >
-
-                    {chartData.map(
-                      (entry, index) => (
-
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={
-                            COLORS[
-                              index % COLORS.length
-                            ]
-                          }
-                        />
-
-                      )
-                    )}
-
+                    {chartData.map((entry, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={COLORS[index % COLORS.length]}
+                      />
+                    ))}
                   </Pie>
 
                   <Tooltip
@@ -344,53 +243,37 @@ function Dashboard() {
                   />
 
                   <Legend />
-
                 </PieChart>
-
               </ResponsiveContainer>
-
             )}
-
           </div>
 
-          {/* CATEGORY DETAILS */}
-
+          {/* CATEGORY OVERVIEW */}
           <div className="bg-white rounded-2xl shadow p-6">
-
             <h2 className="text-2xl font-semibold text-gray-800 mb-6">
               Category Overview
             </h2>
 
             {chartData.length === 0 ? (
-
               <p className="text-gray-500 text-center py-20">
                 No category data available.
               </p>
-
             ) : (
-
               <div className="space-y-4">
-
                 {[...chartData]
                   .sort((a, b) => b.value - a.value)
                   .map((item, index) => {
-
                     const percentage =
                       totalExpenses > 0
-                        ? (item.value /
-                            totalExpenses) *
-                          100
+                        ? (item.value / totalExpenses) * 100
                         : 0;
 
                     return (
-
                       <div
                         key={item.name}
                         className="border-b pb-4"
                       >
-
                         <div className="flex justify-between mb-2">
-
                           <span className="font-medium text-gray-700">
                             {item.name}
                           </span>
@@ -398,49 +281,33 @@ function Dashboard() {
                           <span className="font-semibold text-gray-800">
                             ₹{item.value.toFixed(2)}
                           </span>
-
                         </div>
 
                         <div className="w-full bg-gray-200 rounded-full h-3">
-
                           <div
                             className="h-3 rounded-full"
                             style={{
                               width: `${percentage}%`,
                               backgroundColor:
-                                COLORS[
-                                  index % COLORS.length
-                                ],
+                                COLORS[index % COLORS.length],
                             }}
                           />
-
                         </div>
 
                         <p className="text-sm text-gray-400 mt-1">
                           {percentage.toFixed(1)}% of total spending
                         </p>
-
                       </div>
-
                     );
                   })}
-
               </div>
-
             )}
-
           </div>
-
         </div>
 
-        {/* =========================
-            RECENT EXPENSES
-        ========================== */}
-
+        {/* RECENT EXPENSES */}
         <div className="mt-8 bg-white rounded-2xl shadow p-6">
-
           <div className="flex justify-between items-center mb-5">
-
             <h2 className="text-2xl font-semibold text-gray-800">
               Recent Expenses
             </h2>
@@ -448,87 +315,45 @@ function Dashboard() {
             <span className="text-gray-500">
               {expenses.length} records
             </span>
-
           </div>
 
           {expenses.length === 0 ? (
-
             <p className="text-gray-500 text-center py-10">
               No expenses found.
             </p>
-
           ) : (
-
             <div className="overflow-x-auto">
-
               <table className="w-full text-left">
-
                 <thead>
-
                   <tr className="border-b">
-
-                    <th className="py-4 text-gray-600">
-                      Title
-                    </th>
-
-                    <th className="py-4 text-gray-600">
-                      Category
-                    </th>
-
-                    <th className="py-4 text-gray-600">
-                      Payment Method
-                    </th>
-
-                    <th className="py-4 text-gray-600">
-                      Amount
-                    </th>
-
-                    <th className="py-4 text-gray-600">
-                      Date
-                    </th>
-
+                    <th className="py-4 text-gray-600">Title</th>
+                    <th className="py-4 text-gray-600">Category</th>
+                    <th className="py-4 text-gray-600">Amount</th>
+                    <th className="py-4 text-gray-600">Date</th>
                     <th className="py-4 text-gray-600">
                       Description
                     </th>
-
                   </tr>
-
                 </thead>
 
                 <tbody>
-
                   {expenses.map((expense) => (
-
                     <tr
                       key={expense.id}
                       className="border-b hover:bg-gray-50"
                     >
-
                       <td className="py-4 font-medium">
                         {expense.title}
                       </td>
 
                       <td className="py-4">
-
                         <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm">
                           {expense.category}
                         </span>
-
-                      </td>
-
-                      <td className="py-4">
-
-                        <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm">
-                          {expense.paymentMethod || "-"}
-                        </span>
-
                       </td>
 
                       <td className="py-4 font-semibold">
-                        ₹
-                        {Number(
-                          expense.amount
-                        ).toFixed(2)}
+                        ₹{Number(expense.amount).toFixed(2)}
                       </td>
 
                       <td className="py-4 text-gray-600">
@@ -538,23 +363,15 @@ function Dashboard() {
                       <td className="py-4 text-gray-600">
                         {expense.description || "-"}
                       </td>
-
                     </tr>
-
                   ))}
-
                 </tbody>
-
               </table>
-
             </div>
-
           )}
-
         </div>
 
       </div>
-
     </div>
   );
 }
