@@ -60,7 +60,18 @@ function Login() {
       );
 
       // =========================
-      // 2. CHECK EMAIL VERIFICATION
+      // 2. REFRESH FIREBASE USER
+      // =========================
+
+      await firebaseUser.reload();
+
+      console.log(
+        "Email verification status:",
+        firebaseUser.emailVerified
+      );
+
+      // =========================
+      // 3. CHECK EMAIL VERIFICATION
       // =========================
 
       if (!firebaseUser.emailVerified) {
@@ -74,7 +85,7 @@ function Login() {
       }
 
       // =========================
-      // 3. CHECK API URL
+      // 4. CHECK API URL
       // =========================
 
       if (!API_BASE_URL) {
@@ -92,7 +103,7 @@ function Login() {
       }
 
       // =========================
-      // 4. SYNC USER WITH MYSQL
+      // 5. SYNC USER WITH MYSQL
       // =========================
 
       const response = await fetch(
@@ -115,7 +126,7 @@ function Login() {
       );
 
       // =========================
-      // 5. BACKEND SUCCESS
+      // 6. BACKEND SUCCESS
       // =========================
 
       if (response.ok) {
@@ -137,7 +148,7 @@ function Login() {
       }
 
       // =========================
-      // 6. BACKEND ERROR
+      // 7. BACKEND ERROR
       // =========================
 
       const errorText = await response.text();
@@ -153,8 +164,13 @@ function Login() {
         errorText ||
           "Unable to connect your account with the application."
       );
+
     } catch (error) {
       console.error("Login error:", error);
+
+      // =========================
+      // FIREBASE LOGIN ERRORS
+      // =========================
 
       switch (error.code) {
         case "auth/invalid-email":
@@ -194,6 +210,7 @@ function Login() {
             "Unable to login. Please try again."
           );
       }
+
     } finally {
       setLoading(false);
     }
@@ -225,6 +242,7 @@ function Login() {
         "Password reset email sent!\n\n" +
           "Please check your Inbox, Spam, or Promotions folder."
       );
+
     } catch (error) {
       console.error(
         "Password reset error:",
@@ -255,6 +273,7 @@ function Login() {
             "Unable to send password reset email."
           );
       }
+
     } finally {
       setResetLoading(false);
     }
@@ -287,6 +306,9 @@ function Login() {
       const firebaseUser =
         userCredential.user;
 
+      // Refresh user information
+      await firebaseUser.reload();
+
       if (firebaseUser.emailVerified) {
         alert(
           "Your email is already verified. Please login."
@@ -305,6 +327,7 @@ function Login() {
       alert(
         "A new verification email has been sent to your email address."
       );
+
     } catch (error) {
       console.error(
         "Verification email error:",
@@ -331,6 +354,7 @@ function Login() {
             "Unable to resend verification email."
           );
       }
+
     } finally {
       setLoading(false);
     }
