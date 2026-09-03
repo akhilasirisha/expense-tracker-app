@@ -23,8 +23,8 @@ function Register() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // Local Spring Boot backend
-  const API_BASE_URL = "http://localhost:8081";
+  // Production-ready backend URL
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   // =========================
   // HANDLE INPUT CHANGES
@@ -181,6 +181,7 @@ function Register() {
             "Unable to save your account. Please try again."
         );
       }
+
     } catch (error) {
       console.error(
         "Registration error:",
@@ -227,6 +228,7 @@ function Register() {
             "Registration failed. Please try again."
           );
       }
+
     } finally {
       setLoading(false);
     }
